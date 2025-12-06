@@ -1,7 +1,36 @@
 # RAG Platform Roadmap - Items To Do
 
-**Last Updated**: 2025-12-05  
+**Last Updated**: 2025-12-06  
 **Status**: Active Planning
+
+---
+
+## ⚡ **P0 — CRITICAL PERFORMANCE (CPU Optimization)**
+
+### 0️⃣ CPU-Only LLM Performance Optimization
+
+**Why:** LLM generation taking 4.4 minutes (264 seconds) is unacceptable for production.
+
+**Completed:**
+* ✅ Context window: 2048 → 512 (40-60% faster)
+* ✅ Threading: Auto → Explicit (cores-1) (30-50% faster)
+* ✅ Memory: use_mmap=True, n_threads_batch (5-15% faster)
+* ✅ Code changes committed to `api_server.py`
+
+**Pending:**
+* ⚠️ Apply `api_server.py` changes to Docker container
+* ⚠️ Update Docker run command with CPU/memory limits (`--cpus="8" --memory="8g"`)
+
+**Expected Impact:** 4-8x faster (264s → 30-60s)
+
+**Priority:** ⚡ P0 (Critical Performance)
+
+**Status:** ✅ Code Complete | ⚠️ Needs Deployment
+
+**Documentation:**
+* `CPU_OPTIMIZATION_GUIDE.md` - Detailed implementation guide
+* `OPTIMIZATION_STATUS.md` - Current status and deployment steps
+* `CPU_OPTIMIZATION_REVIEW.md` - Review of additional recommendations
 
 ---
 
@@ -395,7 +424,11 @@ UI → RAG → Tool Router → Spark API
 
 ## ✅ FINAL EXECUTION ROADMAP (CONDENSED)
 
-### 🔥 Do Immediately (P0)
+### ⚡ Do Immediately (P0 Performance)
+
+0. **Deploy CPU optimizations to Docker container** (Code ready, needs deployment)
+
+### 🔥 Do Immediately (P0 Critical)
 
 1. Multi-intent vector fusion
 2. Post-answer grounding validator
@@ -440,12 +473,15 @@ UI → RAG → Tool Router → Spark API
 
 | Priority | Total Items | Completed | In Progress | Not Started |
 |----------|-------------|-----------|-------------|-------------|
-| P0       | 3           | 0         | 0           | 3           |
-| P1       | 3           | 0         | 0           | 3           |
-| P2       | 3           | 0         | 0           | 3           |
-| P3       | 4           | 0         | 0           | 4           |
-| P4       | 3           | 0         | 0           | 3           |
-| **Total**| **16**      | **0**     | **0**       | **16**      |
+| P0 (Performance) | 1 | 0 (Code) | 1 (Deployment) | 0 |
+| P0 (Critical) | 3 | 0 | 0 | 3 |
+| P1 | 3 | 0 | 0 | 3 |
+| P2 | 3 | 0 | 0 | 3 |
+| P3 | 4 | 0 | 0 | 4 |
+| P4 | 3 | 0 | 0 | 3 |
+| **Total**| **17**      | **0**     | **1**       | **16**      |
+
+**Note:** P0 Performance optimization code is complete but needs deployment to Docker container.
 
 ---
 
@@ -461,4 +497,23 @@ UI → RAG → Tool Router → Spark API
 ---
 
 **Next Review Date**: TBD
+
+---
+
+## 🎯 Recent Updates (2025-12-06)
+
+### ✅ Completed
+* CPU optimization code (P0 Performance) - All code changes complete in `api_server.py`
+  * Context window: 2048 → 512
+  * Threading: Explicit (cores-1)
+  * Memory optimizations: use_mmap=True, n_threads_batch
+
+### ⚠️ In Progress
+* CPU optimization deployment - Code ready, needs to be applied to Docker container
+
+### 📝 Documentation Added
+* `CPU_OPTIMIZATION_GUIDE.md` - Complete implementation guide
+* `OPTIMIZATION_STATUS.md` - Current status and deployment checklist
+* `CPU_OPTIMIZATION_REVIEW.md` - Review of additional recommendations
+* `APPLY_CPU_OPTIMIZATIONS.md` - Step-by-step deployment instructions
 
