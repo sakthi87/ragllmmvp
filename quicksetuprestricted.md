@@ -18,11 +18,22 @@ docker run -d --name phi4-rag-api-q3 -p 8083:8083 sakthipsgit/phi4-rag-combined-
 # Validate container is running
 docker ps | grep phi4-rag-api-q3
 
+# Check container logs to verify it loaded properly
+docker logs phi4-rag-api-q3
+
+# Or follow logs in real-time
+docker logs -f phi4-rag-api-q3
+
 # Test embedding endpoint
 curl http://localhost:8083/api/embed -X POST -H "Content-Type: application/json" -d '{"text":"test"}'
 ```
 
-**Expected**: Returns JSON with `"status": "success"` and embedding array.
+**Expected Logs**: Look for:
+- Model loading messages
+- "Server started" or "Listening on port 8083"
+- No error messages
+
+**Expected API Response**: Returns JSON with `"status": "success"` and embedding array.
 
 ---
 
@@ -203,8 +214,20 @@ grep -E "Step [0-9]|Received.*request|Detected intents|Query rewritten|Embedding
 
 ### Phi-4 Container Not Responding
 ```bash
+# Check logs to see what's wrong
 docker logs phi4-rag-api-q3
+
+# Check last 50 lines of logs
+docker logs phi4-rag-api-q3 --tail 50
+
+# Follow logs in real-time
+docker logs -f phi4-rag-api-q3
+
+# Restart container
 docker restart phi4-rag-api-q3
+
+# Check if container is running
+docker ps -a | grep phi4-rag-api-q3
 ```
 
 ### Yugabyte Connection Failed
