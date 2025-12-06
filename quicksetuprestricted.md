@@ -184,6 +184,37 @@ cd ..
 
 ## Step 6: Load Data into Yugabyte
 
+### Install Python Dependencies First
+
+**If you have internet:**
+```bash
+pip3 install -r requirements.txt
+```
+
+**If you're in restricted environment (no internet):**
+
+**Option 1: Pre-install on machine with internet, then transfer**
+```bash
+# On machine with internet:
+pip3 download -r requirements.txt -d python-packages/
+# Transfer python-packages/ directory to restricted environment
+
+# On restricted environment:
+pip3 install --no-index --find-links python-packages/ -r requirements.txt
+```
+
+**Option 2: Use system Python packages (if available)**
+```bash
+# Check if requests is already installed
+python3 -c "import requests; print('requests OK')"
+
+# If not, you may need to install from system package manager
+# RedHat: sudo yum install python3-requests python3-psycopg2
+# macOS: May need to use system Python or install via Homebrew
+```
+
+### Load Data
+
 ```bash
 # Load all 12 canonical document types
 python3 scripts/load_canonical_documents.py
