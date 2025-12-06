@@ -93,29 +93,90 @@ public class Phi4Client {
     }
     
     public String generateRagAnswer(String query, String context, Integer maxTokens, Double temperature) {
-        try {
-            log.debug("Generating RAG answer with context length: {}", context.length());
-            
-            RagGenerateRequest request = new RagGenerateRequest(query, context, maxTokens, temperature);
-            
-            RagGenerateResponse response = webClient.post()
-                    .uri(ragUrl)
-                    .bodyValue(request)
-                    .retrieve()
-                    .bodyToMono(RagGenerateResponse.class)
-                    .timeout(Duration.ofMillis(timeout))
-                    .block();
-            
-            if (response == null || response.getText() == null) {
-                throw new RuntimeException("Failed to generate RAG answer: null response");
+        return generateRagAnswerWithRetry(query, context, maxTokens, temperature, 2);
+    }
+    
+    /**
+     * Generate RAG answer with timeout and retry logic.
+     * 
+     * @param query User question
+     * @param context Full context/prompt
+     * @param maxTokens Max tokens to generate
+     * @param temperature Temperature for generation
+     * @param maxRetries Maximum number of retry attempts
+     * @return Generated answer
+     */
+    public String generateRagAnswerWithRetry(String query, String context, Integer maxTokens, 
+                                             Double temperature, int maxRetries) {
+        // Per-intent timeout: 60 seconds (much shorter than full request timeout)
+        Duration intentTimeout = Duration.ofSeconds(60);
+        
+        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                if (attempt > 0) {
+                    log.warn("Retry attempt {} for RAG answer generation", attempt);
+                }
+                
+                log.debug("Generating RAG answer with context length: {}", context.length());
+                
+                RagGenerateRequest request = new RagGenerateRequest(query, context, maxTokens, temperature);
+                
+                RagGenerateResponse response = webClient.post()
+                        .uri(ragUrl)
+                        .bodyValue(request)
+                        .retrieve()
+                        .bodyToMono(RagGenerateResponse.class)
+                        .timeout(intentTimeout) // 60 seconds per intent
+                        .block();
+                
+                if (response == null || response.getText() == null) {
+                    if (attempt < maxRetries) {
+                        log.warn("Null response on attempt {}, retrying...", attempt + 1);
+                        continue;
+                    }
+                    throw new RuntimeException("Failed to generate RAG answer: null response after " + (attempt + 1) + " attempts");
+                }
+                
+                String answer = response.getText();
+                
+                // Validate answer is not empty
+                if (answer.trim().isEmpty()) {
+                    if (attempt < maxRetries) {
+                        log.warn("Empty answer on attempt {}, retrying...", attempt + 1);
+                        continue;
+                    }
+                    log.warn("Empty answer after {} attempts", attempt + 1);
+                }
+                
+                return answer;
+                
+            } catch (Exception e) {
+                // Check if it's a timeout exception (WebClient throws reactor timeout)
+                if (e.getMessage() != null && (e.getMessage().contains("timeout") || 
+                    e.getMessage().contains("Timeout") ||
+                    e.getClass().getSimpleName().contains("Timeout"))) {
+                    log.warn("Timeout generating RAG answer (attempt {}): {}", attempt + 1, e.getMessage());
+                    if (attempt < maxRetries) {
+                        continue; // Retry
+                    }
+                    throw new RuntimeException("RAG answer generation timed out after " + (attempt + 1) + " attempts", e);
+                }
+                log.error("Error generating RAG answer (attempt {}): {}", attempt + 1, e.getMessage());
+                if (attempt < maxRetries) {
+                    // Wait a bit before retry
+                    try {
+                        Thread.sleep(1000 * (attempt + 1)); // Exponential backoff: 1s, 2s
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    continue; // Retry
+                }
+                throw new RuntimeException("Failed to generate RAG answer after " + (attempt + 1) + " attempts: " + e.getMessage(), e);
             }
-            
-            return response.getText();
-            
-        } catch (Exception e) {
-            log.error("Error generating RAG answer: {}", e.getMessage());
-            throw new RuntimeException("Failed to generate RAG answer: " + e.getMessage(), e);
         }
+        
+        // Should not reach here, but just in case
+        throw new RuntimeException("Failed to generate RAG answer after all retries");
     }
     
     public boolean checkHealth() {

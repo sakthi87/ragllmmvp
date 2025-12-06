@@ -122,11 +122,18 @@ public class RagController {
             long step9Start = System.currentTimeMillis();
             log.info("🔵 [REQUEST-{}] Step 9️⃣: Phi-4 LLM Generation - STARTED [{}]", 
                     requestId, LocalDateTime.now().format(formatter));
-            log.info("   Calling Phi-4 API: maxTokens={}, temperature={}", 
-                    request.getMaxTokens(), request.getTemperature());
+            
+            // Calculate dynamic maxTokens based on number of intents
+            Integer calculatedMaxTokens = calculateMaxTokens(request.getMaxTokens(), docTypes.size());
+            log.info("   Calling Phi-4 API: maxTokens={} (calculated from {} intents), temperature={}", 
+                    calculatedMaxTokens, docTypes.size(), request.getTemperature());
+            
             String phi4Response = vectorService.callPhi4(
                 structuredPrompt,
-                request.getMaxTokens(),
+                request.getQuestion(),
+                retrievedDocs,
+                docTypes,
+                calculatedMaxTokens,
                 request.getTemperature()
             );
             long step9Duration = System.currentTimeMillis() - step9Start;
@@ -161,6 +168,28 @@ public class RagController {
             return ResponseEntity.status(500)
                 .body("Error: " + e.getMessage());
         }
+    }
+    
+    /**
+     * Calculate dynamic maxTokens based on number of intents.
+     * For multi-intent queries, we need more tokens per intent.
+     * 
+     * @param requestedMaxTokens User-requested maxTokens (may be null)
+     * @param numIntents Number of detected intents
+     * @return Calculated maxTokens
+     */
+    private Integer calculateMaxTokens(Integer requestedMaxTokens, int numIntents) {
+        if (requestedMaxTokens != null && requestedMaxTokens > 0) {
+            // User specified, but ensure minimum for multi-intent
+            if (numIntents > 1) {
+                return Math.max(requestedMaxTokens, 200); // At least 200 for multi-intent
+            }
+            return requestedMaxTokens;
+        }
+        
+        // Default calculation: 200 base + 50 per intent, cap at 512
+        int calculated = 200 + (numIntents * 50);
+        return Math.min(calculated, 512);
     }
     
     /**
@@ -300,9 +329,16 @@ public class RagController {
             
             // Step 9: Phi-4 Generation
             long step9Start = System.currentTimeMillis();
+            
+            // Calculate dynamic maxTokens based on number of intents
+            Integer calculatedMaxTokens = calculateMaxTokens(request.getMaxTokens(), docTypes.size());
+            
             String phi4Response = vectorService.callPhi4(
                 structuredPrompt,
-                request.getMaxTokens(),
+                request.getQuestion(),
+                retrievedDocs,
+                docTypes,
+                calculatedMaxTokens,
                 request.getTemperature()
             );
             long step9Duration = System.currentTimeMillis() - step9Start;

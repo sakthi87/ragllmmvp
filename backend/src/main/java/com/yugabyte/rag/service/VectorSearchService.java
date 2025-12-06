@@ -22,6 +22,7 @@ public class VectorSearchService {
     private final RagDocumentRepository repository;
     private final Phi4Client phi4Client;
     private final QueryRewriteService queryRewriteService;
+    private final PromptBuilderService promptBuilderService;
     
     @Value("${rag.default-top-k:6}")
     private Integer defaultTopK;
@@ -45,11 +46,13 @@ public class VectorSearchService {
     
     public VectorSearchService(RagDocumentRepository repository, Phi4Client phi4Client, 
                                IntentDetectionService intentService,
-                               QueryRewriteService queryRewriteService) {
+                               QueryRewriteService queryRewriteService,
+                               PromptBuilderService promptBuilderService) {
         this.repository = repository;
         this.phi4Client = phi4Client;
         this.intentService = intentService;
         this.queryRewriteService = queryRewriteService;
+        this.promptBuilderService = promptBuilderService;
     }
     
     /**
@@ -432,9 +435,20 @@ public class VectorSearchService {
     
     /**
      * Call Phi-4 RAG API with structured prompt.
-     * The structured prompt already contains system prompt + question + context.
+     * Supports both single-intent (legacy) and multi-intent (new) queries.
+     * For multi-intent queries, makes per-intent LLM calls and aggregates results.
+     * 
+     * @param structuredPrompt Full prompt (for single-intent, legacy mode)
+     * @param question Original user question
+     * @param documents Retrieved documents (grouped by intent)
+     * @param docTypes List of detected document types (intents)
+     * @param maxTokens Max tokens per LLM call
+     * @param temperature Temperature for generation
+     * @return Final aggregated answer
      */
-    public String callPhi4(String structuredPrompt, Integer maxTokens, Double temperature) {
+    public String callPhi4(String structuredPrompt, String question, 
+                           List<RagQueryResponse.SourceDocument> documents,
+                           List<String> docTypes, Integer maxTokens, Double temperature) {
         try {
             java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
             log.info("🔵 Step 9️⃣: Phi-4 LLM Generation - STARTED [{}]", 
@@ -442,36 +456,198 @@ public class VectorSearchService {
             log.info("   Max tokens: {}, Temperature: {}", 
                     maxTokens != null ? maxTokens : 100, 
                     temperature != null ? temperature : 0.3);
-            log.info("   Prompt length: {} characters", structuredPrompt.length());
             
-            // The structured prompt from PromptBuilderService already contains everything.
-            // We need to extract just the question for the query parameter.
-            // For simplicity, we'll use the first line after "User Question:" as the query.
-            String query = extractQuestionFromPrompt(structuredPrompt);
-            String context = structuredPrompt; // Use full prompt as context
+            // Determine if this is a multi-intent query
+            boolean isMultiIntent = docTypes != null && docTypes.size() > 1;
             
-            long llmStart = System.currentTimeMillis();
-            String answer = phi4Client.generateRagAnswer(
-                query,
-                context,
-                maxTokens != null ? maxTokens : 100,
-                temperature != null ? temperature : 0.3
-            );
-            long llmDuration = System.currentTimeMillis() - llmStart;
-            
-            log.info("✅ Step 9️⃣: Phi-4 LLM Generation - COMPLETED [{}] (Duration: {}ms)", 
-                    java.time.LocalDateTime.now().format(formatter), llmDuration);
-            log.info("   Answer length: {} characters", answer.length());
-            log.info("   Answer preview: {}", answer.substring(0, Math.min(200, answer.length())));
-            log.info("═══════════════════════════════════════════════════════════════");
-            
-            return answer;
+            if (isMultiIntent) {
+                log.info("   Multi-intent query detected ({} intents), using per-intent LLM calls", docTypes.size());
+                return callPhi4MultiIntent(question, documents, docTypes, maxTokens, temperature);
+            } else {
+                // Single-intent: use legacy approach for backward compatibility
+                log.info("   Single-intent query, using legacy prompt approach");
+                log.info("   Prompt length: {} characters", structuredPrompt.length());
+                
+                String query = extractQuestionFromPrompt(structuredPrompt);
+                String context = structuredPrompt;
+                
+                long llmStart = System.currentTimeMillis();
+                String answer = phi4Client.generateRagAnswer(
+                    query,
+                    context,
+                    maxTokens != null ? maxTokens : 100,
+                    temperature != null ? temperature : 0.3
+                );
+                long llmDuration = System.currentTimeMillis() - llmStart;
+                
+                log.info("✅ Step 9️⃣: Phi-4 LLM Generation - COMPLETED [{}] (Duration: {}ms)", 
+                        java.time.LocalDateTime.now().format(formatter), llmDuration);
+                log.info("   Answer length: {} characters", answer.length());
+                if (answer.length() > 0) {
+                    log.info("   Answer preview: {}", answer.substring(0, Math.min(200, answer.length())));
+                } else {
+                    log.warn("   Answer is empty - LLM may have failed silently");
+                }
+                log.info("═══════════════════════════════════════════════════════════════");
+                
+                return answer;
+            }
         } catch (Exception e) {
             log.error("❌ Step 9️⃣: Phi-4 LLM Generation - ERROR [{}]: {}", 
                     java.time.LocalDateTime.now().format(
                         java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")), 
                     e.getMessage(), e);
             throw new RuntimeException("Phi-4 API call failed: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Legacy method for backward compatibility (single-intent queries).
+     */
+    public String callPhi4(String structuredPrompt, Integer maxTokens, Double temperature) {
+        String question = extractQuestionFromPrompt(structuredPrompt);
+        return callPhi4(structuredPrompt, question, null, null, maxTokens, temperature);
+    }
+    
+    /**
+     * Per-intent LLM calls for multi-intent queries.
+     * Makes separate LLM call for each intent and aggregates results.
+     */
+    private String callPhi4MultiIntent(String question, List<RagQueryResponse.SourceDocument> documents,
+                                      List<String> docTypes, Integer maxTokens, Double temperature) {
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+        
+        // Group documents by source_type
+        Map<String, List<RagQueryResponse.SourceDocument>> docsByType = documents.stream()
+            .collect(java.util.stream.Collectors.groupingBy(
+                doc -> doc.getSourceType() != null ? doc.getSourceType() : "UNKNOWN"
+            ));
+        
+        // Per-intent LLM calls
+        Map<String, String> intentAnswers = new HashMap<>();
+        
+        for (String docType : docTypes) {
+            List<RagQueryResponse.SourceDocument> intentDocs = docsByType.getOrDefault(docType, Collections.emptyList());
+            
+            if (intentDocs.isEmpty()) {
+                log.warn("   No documents found for intent: {}, skipping LLM call", docType);
+                intentAnswers.put(docType, "No relevant documents found for this part of the query.");
+                continue;
+            }
+            
+            log.info("   Processing intent: {} ({} documents)", docType, intentDocs.size());
+            
+            // Build intent-specific prompt
+            String intentPrompt = promptBuilderService.buildIntentPrompt(question, intentDocs, docType);
+            log.debug("   Intent prompt length: {} characters", intentPrompt.length());
+            
+            // Extract question for this intent
+            String intentQuestion = extractIntentQuestion(question, docType);
+            
+            // Call LLM for this intent
+            long intentStart = System.currentTimeMillis();
+            String intentAnswer = null;
+            try {
+                intentAnswer = phi4Client.generateRagAnswer(
+                    intentQuestion,
+                    intentPrompt,
+                    maxTokens != null ? maxTokens : 256, // Increased for multi-intent
+                    temperature != null ? temperature : 0.3
+                );
+                
+                // Validate answer
+                if (intentAnswer == null || intentAnswer.trim().isEmpty()) {
+                    log.warn("   Empty answer for intent: {}, using fallback", docType);
+                    intentAnswer = getFallbackAnswer(intentDocs);
+                }
+            } catch (Exception e) {
+                log.error("   Error generating answer for intent {}: {}, using fallback", docType, e.getMessage());
+                intentAnswer = getFallbackAnswer(intentDocs);
+            }
+            
+            long intentDuration = System.currentTimeMillis() - intentStart;
+            log.info("   ✅ Intent {} completed: {}ms, answer length: {} chars", 
+                    docType, intentDuration, intentAnswer != null ? intentAnswer.length() : 0);
+            
+            intentAnswers.put(docType, intentAnswer);
+        }
+        
+        // Aggregate results
+        String finalAnswer = aggregateIntentAnswers(intentAnswers, docTypes);
+        
+        log.info("✅ Step 9️⃣: Phi-4 LLM Generation - COMPLETED [{}]", 
+                java.time.LocalDateTime.now().format(formatter));
+        log.info("   Total intents processed: {}", docTypes.size());
+        log.info("   Final answer length: {} characters", finalAnswer.length());
+        log.info("═══════════════════════════════════════════════════════════════");
+        
+        return finalAnswer;
+    }
+    
+    /**
+     * Extract intent-specific question from multi-intent query.
+     */
+    private String extractIntentQuestion(String question, String docType) {
+        // For now, use the full question. In future, could extract intent-specific part.
+        // This works because the intent-specific prompt already focuses the model.
+        return question;
+    }
+    
+    /**
+     * Get fallback answer from document content if LLM fails.
+     */
+    private String getFallbackAnswer(List<RagQueryResponse.SourceDocument> documents) {
+        if (documents == null || documents.isEmpty()) {
+            return "No information available for this part of the query.";
+        }
+        
+        // Return summary of top document
+        RagQueryResponse.SourceDocument topDoc = documents.get(0);
+        String content = topDoc.getContent();
+        if (content != null && content.length() > 500) {
+            return content.substring(0, 500) + "...";
+        }
+        return content != null ? content : "Information found but could not be formatted.";
+    }
+    
+    /**
+     * Aggregate per-intent answers into final structured response.
+     */
+    private String aggregateIntentAnswers(Map<String, String> intentAnswers, List<String> docTypes) {
+        StringBuilder aggregated = new StringBuilder();
+        
+        for (String docType : docTypes) {
+            String answer = intentAnswers.get(docType);
+            if (answer != null && !answer.trim().isEmpty()) {
+                String sectionHeader = getSectionHeader(docType);
+                aggregated.append(sectionHeader).append("\n");
+                aggregated.append(answer.trim()).append("\n\n");
+            }
+        }
+        
+        if (aggregated.length() == 0) {
+            return "I apologize, but I was unable to generate answers for your query. " +
+                   "Please try rephrasing your question or check if the relevant data is available.";
+        }
+        
+        return aggregated.toString();
+    }
+    
+    /**
+     * Get section header for document type.
+     */
+    private String getSectionHeader(String docType) {
+        switch (docType) {
+            case "METADATA":
+                return "**Schema Information:**";
+            case "LOG_SUMMARY":
+                return "**Recent Errors (Last 24 Hours):**";
+            case "METRIC_SUMMARY":
+                return "**Current Metrics:**";
+            case "LINEAGE":
+                return "**Data Lineage:**";
+            default:
+                return "**" + docType + ":**";
         }
     }
     

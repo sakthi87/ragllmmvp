@@ -156,5 +156,103 @@ public class PromptBuilderService {
         
         return prompt.toString();
     }
+    
+    /**
+     * Build intent-specific prompt for per-intent LLM calls.
+     * This creates a focused prompt for a single intent type.
+     * 
+     * @param question User's question (may be multi-intent, but we focus on one intent)
+     * @param documents Documents for this specific intent
+     * @param docType The source_type (METADATA, LOG_SUMMARY, METRIC_SUMMARY, etc.)
+     * @return Intent-specific prompt
+     */
+    public String buildIntentPrompt(String question, List<RagQueryResponse.SourceDocument> documents, String docType) {
+        if (question == null || question.trim().isEmpty()) {
+            throw new IllegalArgumentException("Question cannot be empty");
+        }
+        
+        if (documents == null || documents.isEmpty()) {
+            log.warn("No documents provided for intent prompt building (docType: {})", docType);
+            return buildIntentPromptWithNoContext(question, docType);
+        }
+        
+        StringBuilder prompt = new StringBuilder();
+        
+        // System prompt (same as before)
+        prompt.append(SYSTEM_PROMPT);
+        prompt.append("\n\n");
+        
+        // Intent-specific instruction
+        String intentInstruction = getIntentInstruction(docType);
+        prompt.append("Intent: ").append(docType).append("\n");
+        prompt.append("Instructions: ").append(intentInstruction).append("\n\n");
+        
+        // User question
+        prompt.append("Question: ");
+        prompt.append(question);
+        prompt.append("\n\n");
+        
+        // Context (only documents for this intent)
+        prompt.append("Context:\n");
+        prompt.append("=".repeat(80));
+        prompt.append("\n\n");
+        
+        for (int i = 0; i < documents.size(); i++) {
+            RagQueryResponse.SourceDocument doc = documents.get(i);
+            prompt.append(String.format("[%d] %s - %s", 
+                i + 1, 
+                doc.getComponent() != null ? doc.getComponent() : "Unknown",
+                doc.getSourceName() != null ? doc.getSourceName() : "Unknown"));
+            
+            if (doc.getEventDate() != null) {
+                prompt.append(" (Date: ").append(doc.getEventDate()).append(")");
+            }
+            
+            if (doc.getSimilarityScore() != null) {
+                prompt.append(String.format(" [Relevance: %.1f%%]", doc.getSimilarityScore() * 100));
+            }
+            
+            prompt.append("\n");
+            prompt.append(doc.getContent() != null ? doc.getContent() : "");
+            prompt.append("\n\n");
+        }
+        
+        prompt.append("=".repeat(80));
+        prompt.append("\n\n");
+        prompt.append("Answer (2-4 sentences, be specific):\n");
+        
+        return prompt.toString();
+    }
+    
+    /**
+     * Get intent-specific instruction based on document type.
+     */
+    private String getIntentInstruction(String docType) {
+        switch (docType) {
+            case "METADATA":
+                return "Provide the schema definition including primary key, clustering columns, and all column types. Be specific about data types and constraints.";
+            case "LOG_SUMMARY":
+                return "List the errors and failures that occurred, including timestamps and error messages. If no errors found, state that clearly.";
+            case "METRIC_SUMMARY":
+                return "Provide current metric values and indicate if they are within normal range. Include specific numbers and comparisons to baseline if available.";
+            case "LINEAGE":
+                return "Describe the data flow, including sources (Kafka topics, Spark jobs, APIs) and destinations. Show the complete pipeline path.";
+            default:
+                return "Answer based on the provided context. Be specific and cite relevant details.";
+        }
+    }
+    
+    /**
+     * Build intent prompt when no context is available.
+     */
+    private String buildIntentPromptWithNoContext(String question, String docType) {
+        String intentInstruction = getIntentInstruction(docType);
+        return SYSTEM_PROMPT + "\n\n" +
+               "Intent: " + docType + "\n" +
+               "Instructions: " + intentInstruction + "\n\n" +
+               "Question: " + question + "\n\n" +
+               "Context: No relevant documents found in the knowledge base for this intent.\n\n" +
+               "Please inform the user that no information is available to answer this part of the question.";
+    }
 }
 
