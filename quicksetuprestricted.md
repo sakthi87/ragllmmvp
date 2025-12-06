@@ -13,7 +13,10 @@
 ```bash
 # Pull and start Phi-4 Q3 container
 docker pull sakthipsgit/phi4-rag-combined-q3:latest
-docker run -d --name phi4-rag-api-q3 -p 8083:8083 sakthipsgit/phi4-rag-combined-q3:latest
+docker run -d --name phi4-rag-api-q3 -p 8083:5000 sakthipsgit/phi4-rag-combined-q3:latest
+```
+
+**Note**: Container runs on port 5000 internally, mapped to 8083 externally.
 
 # Validate container is running
 docker ps | grep phi4-rag-api-q3
@@ -24,8 +27,16 @@ docker logs phi4-rag-api-q3
 # Or follow logs in real-time
 docker logs -f phi4-rag-api-q3
 
-# Test embedding endpoint
+# Test embedding endpoint (after correct port mapping)
 curl http://localhost:8083/api/embed -X POST -H "Content-Type: application/json" -d '{"text":"test"}'
+```
+
+**If you get "Connection reset" error**: The container runs on port 5000 internally. Restart with correct mapping:
+```bash
+docker stop phi4-rag-api-q3
+docker rm phi4-rag-api-q3
+docker run -d --name phi4-rag-api-q3 -p 8083:5000 sakthipsgit/phi4-rag-combined-q3:latest
+```
 ```
 
 **Expected Logs**: Look for:
