@@ -1,0 +1,28 @@
+{
+  "cluster_name": "cass-prod-1",
+  "source_type": "METRIC_SUMMARY",
+  "doc_sub_type": "metrics_daily",
+  "entity_type": "table",
+  "component": "Cassandra",
+  "source_name": "transaction_keyspace.dda_transactions",
+  "keyspace": "transaction_keyspace",
+  "table_name": "dda_transactions",
+  "domain": "Retail Banking",
+  "sub_domain": "Digital Deposit Accounts",
+  "event_date": "2025-12-05",
+  "start_ts": "2025-12-04T00:00:00Z",
+  "end_ts": "2025-12-05T00:00:00Z",
+  "time_window": "last_24h",
+  "content": "Current read and write latency metrics for cassandra table transaction_keyspace.dda_transactions. 24h metrics: avg read latency 42ms, p95 read latency 520ms, p99 read latency 1.1s. Avg write latency 18ms. Read throughput: 120k req/min. Tombstone ratio: 12%. Compaction throughput averaged 14 GB/hr.",
+  "metadata": {
+    "read_latency_ms": 42,
+    "write_latency_ms": 18,
+    "avg_read_ms": 42,
+    "p95_read_ms": 520,
+    "p99_read_ms": 1100,
+    "avg_write_ms": 18,
+    "read_rps": 2000,
+    "tombstone_ratio_percent": 12
+  }
+}
+

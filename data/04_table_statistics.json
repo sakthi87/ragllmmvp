@@ -1,0 +1,24 @@
+{
+  "cluster_name": "cass-prod-1",
+  "source_type": "METADATA",
+  "doc_sub_type": "table_statistics",
+  "entity_type": "table",
+  "component": "Cassandra",
+  "source_name": "transaction_keyspace.dda_transactions",
+  "keyspace": "transaction_keyspace",
+  "table_name": "dda_transactions",
+  "domain": "Retail Banking",
+  "sub_domain": "Digital Deposit Accounts",
+  "event_date": "2025-12-05",
+  "time_window": "N/A",
+  "content": "Row count, table size and growth statistics for cassandra table transaction_keyspace.dda_transactions. Latest table stats: Approx size on disk: 420 GB. Estimated total rows: 2,100,000,000. Partition count: 48,000,000. SSTable count average per node: 120.",
+  "metadata": {
+    "row_count": 2100000000,
+    "size_gb": 420,
+    "estimated_rows": 2100000000,
+    "partition_count": 48000000,
+    "sstables_per_node": 120,
+    "table_size_mb": 430080
+  }
+}
+

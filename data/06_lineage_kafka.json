@@ -1,0 +1,24 @@
+{
+  "cluster_name": "cass-prod-1",
+  "source_type": "LINEAGE",
+  "doc_sub_type": "lineage_kafka",
+  "entity_type": "kafka_topic",
+  "component": "Kafka",
+  "source_name": "kafka.dda_txn_topic",
+  "keyspace": "transaction_keyspace",
+  "table_name": "dda_transactions",
+  "domain": "Retail Banking",
+  "sub_domain": "Digital Deposit Accounts",
+  "event_date": "2025-12-05",
+  "time_window": "N/A",
+  "content": "Kafka topic producing data for cassandra table transaction_keyspace.dda_transactions. Upstream: Kafka topic `dda_txn_topic` produced by PaymentIngestService. Schema registry subject: dda_txn_avro_v1. Producers: ingestion-proxy, settlement-batch. Typical throughput: 1.2M msgs/min during peak.",
+  "metadata": {
+    "topic_name": "dda_txn_topic",
+    "topic": "dda_txn_topic",
+    "producer": "PaymentIngestService",
+    "producers": ["ingestion-proxy", "settlement-batch"],
+    "schema_registry_subject": "dda_txn_avro_v1",
+    "avg_tps": 1200000
+  }
+}
+

@@ -1,0 +1,51 @@
+# Maven
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+
+# Node
+frontend/node_modules/
+frontend/build/
+frontend/.pnp/
+frontend/.pnp.js
+
+# Logs
+backend/logs/
+backend/*.log
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+config/config.env
+*.env
+.env.local
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
+
+# JAR files (keep only source, not built artifacts)
+# backend/target/*.jar
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+

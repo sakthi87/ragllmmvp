@@ -1,0 +1,24 @@
+{
+  "cluster_name": "cass-prod-1",
+  "source_type": "LINEAGE",
+  "doc_sub_type": "lineage_spark",
+  "entity_type": "spark_job",
+  "component": "Spark",
+  "source_name": "kafka2cassandra_ddatransactions",
+  "keyspace": "transaction_keyspace",
+  "table_name": "dda_transactions",
+  "domain": "Retail Banking",
+  "sub_domain": "Digital Deposit Accounts",
+  "event_date": "2025-12-05",
+  "time_window": "N/A",
+  "content": "Spark job pipeline writing data to cassandra table transaction_keyspace.dda_transactions. Spark streaming job `kafka2cassandra_ddatransactions` reads from dda_txn_topic, performs schema validation and enrichment, and upserts to Cassandra. Job runs in continuous streaming mode with 20 executors and uses checkpointing to HDFS. Typical end-to-end latency: 30-60s.",
+  "metadata": {
+    "job_name": "kafka2cassandra_ddatransactions",
+    "mode": "streaming",
+    "schedule": "Continuous",
+    "executors": 20,
+    "checkpoint_path": "hdfs://cluster/checkpoints/kafka2cassandra",
+    "avg_latency_seconds": 45
+  }
+}
+

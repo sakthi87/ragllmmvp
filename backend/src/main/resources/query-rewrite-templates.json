@@ -1,0 +1,158 @@
+[
+  {
+    "doc_sub_type": "schema_metadata",
+    "source_type": "METADATA",
+    "rewrite_template": "Schema definition of cassandra table {keyspace}.{table} including primary key, partition key and clustering columns",
+    "description": "Retrieve the schema details of a Cassandra table including PK, partition key, and clustering columns.",
+    "example": "Schema definition of cassandra table transaction_keyspace.dda_transactions including primary key, partition key and clustering columns",
+    "similarity_threshold": 0.75,
+    "example_questions": [
+      "What is the schema of dda_transactions?",
+      "Show the primary and clustering keys for table dda_transactions",
+      "Columns and schema details of table dda_transactions"
+    ]
+  },
+  {
+    "doc_sub_type": "business_metadata",
+    "source_type": "METADATA",
+    "rewrite_template": "Business ownership, domain and data classification for cassandra table {keyspace}.{table}",
+    "description": "Retrieve business metadata like domain, ownership, and data classification for a table.",
+    "example": "Business ownership, domain and data classification for cassandra table transaction_keyspace.dda_transactions",
+    "similarity_threshold": 0.75,
+    "example_questions": [
+      "Who owns dda_transactions table?",
+      "What is the business domain of dda_transactions?",
+      "Data classification for table dda_transactions"
+    ]
+  },
+  {
+    "doc_sub_type": "storage_configuration",
+    "source_type": "METADATA",
+    "rewrite_template": "Compaction strategy, compression and storage configuration for cassandra table {keyspace}.{table}",
+    "description": "Retrieve storage configurations like compaction, compression, and other storage settings for a table.",
+    "example": "Compaction strategy, compression and storage configuration for cassandra table transaction_keyspace.dda_transactions",
+    "similarity_threshold": 0.72,
+    "example_questions": [
+      "What is the compaction strategy for dda_transactions?",
+      "Storage settings of table dda_transactions",
+      "Compression details for table dda_transactions"
+    ]
+  },
+  {
+    "doc_sub_type": "table_statistics",
+    "source_type": "METADATA",
+    "rewrite_template": "Row count, table size and growth statistics for cassandra table {keyspace}.{table}",
+    "description": "Retrieve table statistics including row count, size, and growth trends.",
+    "example": "Row count, table size and growth statistics for cassandra table transaction_keyspace.dda_transactions",
+    "similarity_threshold": 0.70,
+    "example_questions": [
+      "How many rows are in dda_transactions?",
+      "Size of table dda_transactions",
+      "Growth statistics of dda_transactions table"
+    ]
+  },
+  {
+    "doc_sub_type": "data_lifecycle",
+    "source_type": "METADATA",
+    "rewrite_template": "TTL, retention policy and data lifecycle rules for cassandra table {keyspace}.{table}",
+    "description": "Retrieve TTL, retention policy, and lifecycle rules for the table.",
+    "example": "TTL, retention policy and data lifecycle rules for cassandra table transaction_keyspace.dda_transactions",
+    "similarity_threshold": 0.72,
+    "example_questions": [
+      "What is the TTL for dda_transactions?",
+      "Retention policy of table dda_transactions",
+      "Data lifecycle rules for dda_transactions"
+    ]
+  },
+  {
+    "doc_sub_type": "lineage_kafka",
+    "source_type": "LINEAGE",
+    "rewrite_template": "Kafka topic producing data for cassandra table {keyspace}.{table}",
+    "description": "Trace Kafka topics producing data for this table.",
+    "example": "Kafka topic producing data for cassandra table transaction_keyspace.dda_transactions",
+    "similarity_threshold": 0.75,
+    "example_questions": [
+      "Which Kafka topic feeds dda_transactions?",
+      "Data source Kafka topic for table dda_transactions",
+      "Show lineage from Kafka to dda_transactions"
+    ]
+  },
+  {
+    "doc_sub_type": "lineage_spark",
+    "source_type": "LINEAGE",
+    "rewrite_template": "Spark job pipeline writing data to cassandra table {keyspace}.{table}",
+    "description": "Identify Spark jobs that write to this table.",
+    "example": "Spark job pipeline writing data to cassandra table transaction_keyspace.dda_transactions",
+    "similarity_threshold": 0.75,
+    "example_questions": [
+      "Which Spark jobs write to dda_transactions?",
+      "Show Spark pipeline for table dda_transactions",
+      "Data ingestion jobs for dda_transactions"
+    ]
+  },
+  {
+    "doc_sub_type": "lineage_dataapi",
+    "source_type": "LINEAGE",
+    "rewrite_template": "Data API endpoints that read or write cassandra table {keyspace}.{table}",
+    "description": "Identify APIs interacting with this table.",
+    "example": "Data API endpoints that read or write cassandra table transaction_keyspace.dda_transactions",
+    "similarity_threshold": 0.75,
+    "example_questions": [
+      "Which APIs read or write dda_transactions?",
+      "Data API usage for dda_transactions",
+      "List endpoints accessing table dda_transactions"
+    ]
+  },
+  {
+    "doc_sub_type": "logs_daily",
+    "source_type": "LOG_SUMMARY",
+    "rewrite_template": "Last 24 hours failures and errors for cassandra table {keyspace}.{table}",
+    "description": "Retrieve daily log errors and failures for the table.",
+    "example": "Last 24 hours failures and errors for cassandra table transaction_keyspace.dda_transactions",
+    "similarity_threshold": 0.63,
+    "example_questions": [
+      "Show last 24h errors for dda_transactions",
+      "Daily failures in table dda_transactions",
+      "Recent log issues for dda_transactions"
+    ]
+  },
+  {
+    "doc_sub_type": "logs_weekly",
+    "source_type": "LOG_SUMMARY",
+    "rewrite_template": "7 day error and failure trends for cassandra table {keyspace}.{table}",
+    "description": "Retrieve weekly log errors and failure trends for the table.",
+    "example": "7 day error and failure trends for cassandra table transaction_keyspace.dda_transactions",
+    "similarity_threshold": 0.65,
+    "example_questions": [
+      "Weekly failure trends for dda_transactions",
+      "7-day log summary for table dda_transactions",
+      "Error trends for dda_transactions table"
+    ]
+  },
+  {
+    "doc_sub_type": "metrics_daily",
+    "source_type": "METRIC_SUMMARY",
+    "rewrite_template": "Current read and write latency metrics for cassandra table {keyspace}.{table}",
+    "description": "Retrieve daily read/write latency metrics for the table.",
+    "example": "Current read and write latency metrics for cassandra table transaction_keyspace.dda_transactions",
+    "similarity_threshold": 0.65,
+    "example_questions": [
+      "Daily latency metrics for dda_transactions",
+      "Read/write latency for table dda_transactions",
+      "Performance metrics today for dda_transactions"
+    ]
+  },
+  {
+    "doc_sub_type": "metrics_weekly",
+    "source_type": "METRIC_SUMMARY",
+    "rewrite_template": "Weekly throughput and performance trends for cassandra table {keyspace}.{table}",
+    "description": "Retrieve weekly throughput and performance trends for the table.",
+    "example": "Weekly throughput and performance trends for cassandra table transaction_keyspace.dda_transactions",
+    "similarity_threshold": 0.67,
+    "example_questions": [
+      "Weekly throughput for dda_transactions",
+      "Performance trends for table dda_transactions",
+      "Read/write performance over last week for dda_transactions"
+    ]
+  }
+]

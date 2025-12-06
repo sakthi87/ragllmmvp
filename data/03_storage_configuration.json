@@ -1,0 +1,25 @@
+{
+  "cluster_name": "cass-prod-1",
+  "source_type": "METADATA",
+  "doc_sub_type": "storage_configuration",
+  "entity_type": "table",
+  "component": "Cassandra",
+  "source_name": "transaction_keyspace.dda_transactions",
+  "keyspace": "transaction_keyspace",
+  "table_name": "dda_transactions",
+  "domain": "Retail Banking",
+  "sub_domain": "Digital Deposit Accounts",
+  "event_date": "2025-12-05",
+  "time_window": "N/A",
+  "content": "Compaction strategy, compression and storage configuration for cassandra table transaction_keyspace.dda_transactions. Storage and compaction settings: Compaction strategy: TimeWindowCompactionStrategy (TWCS) with compaction window size 1d. gc_grace_seconds: 864000 (10 days). Compression: LZ4Compressor. Bloom filter FP chance: 0.01. Caching: keys_only.",
+  "metadata": {
+    "compaction_strategy": "TWCS",
+    "compaction": "TimeWindowCompactionStrategy",
+    "compaction_window": "1d",
+    "gc_grace_seconds": 864000,
+    "compression": "LZ4Compressor",
+    "bloom_filter_fp_chance": 0.01,
+    "caching": "keys_only"
+  }
+}
+

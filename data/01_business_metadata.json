@@ -1,0 +1,24 @@
+{
+  "cluster_name": "cass-prod-1",
+  "source_type": "METADATA",
+  "doc_sub_type": "business_metadata",
+  "entity_type": "table",
+  "component": "Cassandra",
+  "source_name": "transaction_keyspace.dda_transactions",
+  "keyspace": "transaction_keyspace",
+  "table_name": "dda_transactions",
+  "domain": "Retail Banking",
+  "sub_domain": "Digital Deposit Accounts",
+  "event_date": "2025-12-05",
+  "time_window": "N/A",
+  "content": "Business ownership, domain and data classification for cassandra table transaction_keyspace.dda_transactions. The dda_transactions table stores customer debit and credit transactions for demand deposit accounts. Business use cases include balance computation, ledger syncing, regulatory reporting, and transaction history for mobile/online banking.",
+  "metadata": {
+    "business_owner": "VP - Retail Payments",
+    "technical_owner": "Data Platform Engineering",
+    "data_steward": "Enterprise Data Governance",
+    "environment": "PROD",
+    "created_date": "2021-08-10",
+    "sensitivity": "High"
+  }
+}
+

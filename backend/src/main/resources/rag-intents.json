@@ -1,0 +1,177 @@
+{
+  "intents": [
+    {
+      "intent_name": "BUSINESS_METADATA",
+      "doc_type": "business_metadata",
+      "keywords": [
+        "domain",
+        "sub domain",
+        "owner",
+        "business owner",
+        "technical owner",
+        "data steward",
+        "purpose",
+        "use case",
+        "what does this table do",
+        "who owns this table",
+        "production or dev",
+        "pii",
+        "pci",
+        "gdpr"
+      ]
+    },
+    {
+      "intent_name": "SCHEMA_METADATA",
+      "doc_type": "schema_metadata",
+      "keywords": [
+        "column",
+        "columns",
+        "schema",
+        "data type",
+        "primary key",
+        "partition key",
+        "clustering key",
+        "clustering order",
+        "ttl",
+        "default ttl"
+      ]
+    },
+    {
+      "intent_name": "STORAGE_CONFIGURATION",
+      "doc_type": "storage_configuration",
+      "keywords": [
+        "compaction",
+        "tombstone",
+        "bloom filter",
+        "gc grace",
+        "compression",
+        "disk usage",
+        "sstable",
+        "cache"
+      ]
+    },
+    {
+      "intent_name": "DATA_LIFECYCLE",
+      "doc_type": "data_lifecycle",
+      "keywords": [
+        "retention",
+        "archive",
+        "purge",
+        "delete",
+        "gdpr",
+        "backup",
+        "cold storage"
+      ]
+    },
+    {
+      "intent_name": "TABLE_STATISTICS",
+      "doc_type": "table_statistics",
+      "keywords": [
+        "table size",
+        "row count",
+        "number of rows",
+        "table growth",
+        "tombstone ratio",
+        "sstable count"
+      ]
+    },
+    {
+      "intent_name": "LINEAGE_KAFKA",
+      "doc_type": "lineage_kafka",
+      "keywords": [
+        "kafka",
+        "topic",
+        "producer",
+        "ingestion",
+        "event stream"
+      ]
+    },
+    {
+      "intent_name": "LINEAGE_SPARK",
+      "doc_type": "lineage_spark",
+      "keywords": [
+        "spark",
+        "job",
+        "batch",
+        "streaming",
+        "processing",
+        "etl"
+      ]
+    },
+    {
+      "intent_name": "LINEAGE_DATAAPI",
+      "doc_type": "lineage_dataapi",
+      "keywords": [
+        "api",
+        "rest api",
+        "graphql",
+        "consumer",
+        "read api",
+        "service"
+      ]
+    },
+    {
+      "intent_name": "LOGS_DAILY",
+      "doc_type": "logs_daily",
+      "keywords": [
+        "error today",
+        "failed today",
+        "exception",
+        "exceptions",
+        "timeout",
+        "timeouts",
+        "logs today",
+        "failure",
+        "errors",
+        "error",
+        "failed",
+        "what errors",
+        "errors occurred",
+        "last 24 hours",
+        "last 24h",
+        "panic",
+        "compaction error",
+        "dropped mutations"
+      ],
+      "time_window_days": 1
+    },
+    {
+      "intent_name": "LOGS_WEEKLY",
+      "doc_type": "logs_weekly",
+      "keywords": [
+        "error trend",
+        "failures this week",
+        "recurring errors",
+        "weekly logs"
+      ],
+      "time_window_days": 7
+    },
+    {
+      "intent_name": "METRICS_DAILY",
+      "doc_type": "metrics_daily",
+      "keywords": [
+        "slow today",
+        "latency",
+        "performance today",
+        "tps",
+        "throughput",
+        "cpu",
+        "heap",
+        "pending compactions"
+      ],
+      "time_window_days": 1
+    },
+    {
+      "intent_name": "METRICS_WEEKLY",
+      "doc_type": "metrics_weekly",
+      "keywords": [
+        "performance trend",
+        "weekly throughput",
+        "latency trend",
+        "capacity trend"
+      ],
+      "time_window_days": 7
+    }
+  ]
+}
+

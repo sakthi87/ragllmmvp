@@ -1,0 +1,23 @@
+{
+  "cluster_name": "cass-prod-1",
+  "source_type": "LINEAGE",
+  "doc_sub_type": "lineage_dataapi",
+  "entity_type": "api",
+  "component": "DataAPI",
+  "source_name": "AccountTransactionAPI",
+  "keyspace": "transaction_keyspace",
+  "table_name": "dda_transactions",
+  "domain": "Retail Banking",
+  "sub_domain": "Digital Deposit Accounts",
+  "event_date": "2025-12-05",
+  "time_window": "N/A",
+  "content": "Data API endpoints that read or write cassandra table transaction_keyspace.dda_transactions. Downstream: AccountTransactionAPI queries dda_transactions for account transaction history and balance calculations. API endpoints: /accounts/{id}/transactions, uses partition key account_id. SLA: 200ms 95th percentile for reads.",
+  "metadata": {
+    "api_name": "AccountTransactionAPI",
+    "endpoints": ["/accounts/{id}/transactions"],
+    "method": ["GET"],
+    "sla_p95_ms": 200,
+    "primary_key_used": "account_id"
+  }
+}
+

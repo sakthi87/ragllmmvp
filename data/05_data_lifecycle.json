@@ -1,0 +1,25 @@
+{
+  "cluster_name": "cass-prod-1",
+  "source_type": "METADATA",
+  "doc_sub_type": "data_lifecycle",
+  "entity_type": "table",
+  "component": "Cassandra",
+  "source_name": "transaction_keyspace.dda_transactions",
+  "keyspace": "transaction_keyspace",
+  "table_name": "dda_transactions",
+  "domain": "Retail Banking",
+  "sub_domain": "Digital Deposit Accounts",
+  "event_date": "2025-12-05",
+  "time_window": "N/A",
+  "content": "TTL, retention policy and data lifecycle rules for cassandra table transaction_keyspace.dda_transactions. Default TTL is 90 days. Older data beyond 90 days is archived to cold storage (S3) monthly. GDPR/PII rules: account_id is PII and masked in non-prod environments. Purge policy: nightly jobs remove tombstoned data after grace period.",
+  "metadata": {
+    "ttl_days": 90,
+    "default_ttl_days": 90,
+    "retention_policy": "Archive after 90 days",
+    "archive_frequency": "monthly",
+    "archive_location": "s3://company-data-archive/transactions",
+    "pii_columns": ["account_id"],
+    "purge_policy": "nightly_purge_after_gc_grace"
+  }
+}
+
