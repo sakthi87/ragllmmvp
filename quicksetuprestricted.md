@@ -50,9 +50,21 @@ docker run -d --name phi4-rag-api-q3 -p 8083:5000 sakthipsgit/phi4-rag-combined-
 
 ## Step 2: Start YugabyteDB Docker Container
 
+### For MacBook Pro (macOS):
 ```bash
-# Start YugabyteDB container
+# Pull and start YugabyteDB container
+docker pull yugabyte/yugabyte:latest
 docker run -d --name yugabyte -p 5433:5433 -p 7000:7000 -p 9000:9000 yugabyte/yugabyte:latest yugabytedb --daemon=false
+```
+
+### For Linux RedHat:
+```bash
+# Pull and start YugabyteDB container (same command works on Linux)
+docker pull yugabyte/yugabyte:latest
+docker run -d --name yugabyte -p 5433:5433 -p 7000:7000 -p 9000:9000 yugabyte/yugabyte:latest yugabytedb --daemon=false
+```
+
+**Note**: The same Docker image works on both macOS and Linux. Docker handles platform differences automatically.
 
 # Wait 10 seconds for startup
 sleep 10
