@@ -66,11 +66,12 @@ psql -h localhost -p 5433 -U yugabyte -d rag_llm_optimized -c "\d rag_documents"
 ## Step 4: Start Backend (JAR)
 
 ```bash
+# Option 1: Using run script (recommended)
+./run-backend.sh
+
+# Option 2: Direct JAR execution
 cd backend/target
 java -jar rag-api-1.0.0.jar
-
-# Or with custom config
-java -jar rag-api-1.0.0.jar --spring.config.location=classpath:/application.yml
 ```
 
 **Expected**: Spring Boot starts on port 8080. Check logs for:
@@ -85,6 +86,10 @@ java -jar rag-api-1.0.0.jar --spring.config.location=classpath:/application.yml
 ## Step 5: Start Frontend
 
 ```bash
+# Option 1: Using run script (recommended - can run from anywhere)
+./run-frontend.sh
+
+# Option 2: Direct npm execution
 cd frontend
 npm start
 ```
