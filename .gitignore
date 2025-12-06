@@ -39,12 +39,12 @@ config/config.env
 # JAR files (keep only source, not built artifacts)
 # backend/target/*.jar
 
-# Python
+# Python (keep wheel files for restricted environments)
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-venv/
-env/
+# Keep: python-packages/*.whl (needed for restricted environments)
+# Note: venv/ is excluded but can be created locally
 

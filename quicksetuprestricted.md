@@ -203,13 +203,32 @@ pip3 install -r requirements.txt
 ```
 
 **Step 2: Install from wheel files (on restricted MacBook Pro)**
+
+**Option A: Using virtual environment (recommended)**
 ```bash
-# After transferring python-packages/ directory, run:
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Install from wheel files
+./install-python-deps-offline.sh
+
+# Or manually:
+pip install --no-index --find-links python-packages/ -r requirements.txt
+```
+
+**Option B: System-wide installation**
+```bash
+# Install directly (no venv)
 ./install-python-deps-offline.sh
 
 # Or manually:
 pip3 install --no-index --find-links python-packages/ -r requirements.txt
 ```
+
+**Note**: The script will prompt you to create a venv if one doesn't exist.
 
 **Manual download (if script doesn't work):**
 ```bash
@@ -234,6 +253,19 @@ python3 -c "import psycopg2; print('psycopg2 OK')"
 
 ### Load Data
 
+**If using virtual environment:**
+```bash
+# Activate venv first
+source venv/bin/activate
+
+# Load all 12 canonical document types
+python scripts/load_canonical_documents.py
+
+# Or load individually
+python scripts/load_canonical_documents.py --file data/02_schema_metadata.json
+```
+
+**If not using venv:**
 ```bash
 # Load all 12 canonical document types
 python3 scripts/load_canonical_documents.py
