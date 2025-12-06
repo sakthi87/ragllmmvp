@@ -12,8 +12,8 @@
 
 ```bash
 # Pull and start Phi-4 Q3 container
-docker pull yugabyte/phi4-rag-api-q3:latest
-docker run -d --name phi4-rag-api-q3 -p 8083:8083 yugabyte/phi4-rag-api-q3:latest
+docker pull sakthipsgit/phi4-rag-combined-q3:latest
+docker run -d --name phi4-rag-api-q3 -p 8083:8083 sakthipsgit/phi4-rag-combined-q3:latest
 
 # Validate container is running
 docker ps | grep phi4-rag-api-q3
