@@ -191,26 +191,45 @@ cd ..
 pip3 install -r requirements.txt
 ```
 
-**If you're in restricted environment (no internet):**
+**If you're in restricted environment (no internet) - MacBook Pro:**
 
-**Option 1: Pre-install on machine with internet, then transfer**
+**Step 1: Download wheel files (on machine WITH internet)**
 ```bash
-# On machine with internet:
-pip3 download -r requirements.txt -d python-packages/
-# Transfer python-packages/ directory to restricted environment
+# Run the download script
+./download-python-deps.sh
 
-# On restricted environment:
+# This creates python-packages/ directory with all wheel files
+# Transfer this directory to your restricted MacBook Pro
+```
+
+**Step 2: Install from wheel files (on restricted MacBook Pro)**
+```bash
+# After transferring python-packages/ directory, run:
+./install-python-deps-offline.sh
+
+# Or manually:
 pip3 install --no-index --find-links python-packages/ -r requirements.txt
 ```
 
-**Option 2: Use system Python packages (if available)**
+**Manual download (if script doesn't work):**
 ```bash
-# Check if requests is already installed
-python3 -c "import requests; print('requests OK')"
+# On machine with internet, download for macOS:
+pip3 download \
+    --platform macosx_10_9_universal2 \
+    --platform macosx_11_0_arm64 \
+    --platform macosx_11_0_x86_64 \
+    --only-binary=:all: \
+    -r requirements.txt \
+    -d python-packages/
 
-# If not, you may need to install from system package manager
-# RedHat: sudo yum install python3-requests python3-psycopg2
-# macOS: May need to use system Python or install via Homebrew
+# Transfer python-packages/ to restricted MacBook Pro, then:
+pip3 install --no-index --find-links python-packages/ -r requirements.txt
+```
+
+**Verify installation:**
+```bash
+python3 -c "import requests; print('requests OK')"
+python3 -c "import psycopg2; print('psycopg2 OK')"
 ```
 
 ### Load Data
