@@ -83,15 +83,22 @@ java -jar rag-api-1.0.0.jar
 
 ---
 
-## Step 5: Start Frontend
+## Step 5: Start Frontend (NO Internet Required)
 
 ```bash
-# Option 1: Using run script (recommended - can run from anywhere)
+# Run from mvp directory - serves static build files
 ./run-frontend.sh
+```
 
-# Option 2: Direct npm execution
+**Note**: This uses pre-built static files from `frontend/build/` directory. No npm or internet connection needed.
+
+**If build directory doesn't exist**: You need to build it once (requires internet):
+```bash
 cd frontend
-npm start
+npm install
+npm run build
+cd ..
+./run-frontend.sh
 ```
 
 **Expected**: React app starts on port 3000. Open `http://localhost:3000` in browser.
