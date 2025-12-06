@@ -66,6 +66,49 @@ docker run -d --name yugabyte -p 5433:5433 -p 7000:7000 -p 9000:9000 yugabyte/yu
 
 **Note**: The same Docker image works on both macOS and Linux. Docker handles platform differences automatically.
 
+### Troubleshooting TLS Handshake Timeout
+
+If you get `TLS handshake timeout` error:
+
+**Option 1: Increase Docker timeout and retry**
+```bash
+# Set Docker daemon timeout (if you have access to Docker daemon config)
+# Or retry with longer timeout
+docker pull yugabyte/yugabyte:latest --platform linux/amd64
+```
+
+**Option 2: Use specific version (if available locally)**
+```bash
+# Try a different version that might be cached
+docker pull yugabyte/yugabyte:2.23.0.0-b1
+```
+
+**Option 3: Load from saved image (if you have the image file)**
+```bash
+# If you have the image saved as a tar file
+docker load -i yugabyte-image.tar
+```
+
+**Option 4: Check network/proxy settings**
+```bash
+# Check if Docker can reach registry
+docker info | grep -i registry
+
+# If behind proxy, configure Docker proxy settings
+# Create/edit: /etc/docker/daemon.json (Linux) or ~/.docker/config.json (macOS)
+```
+
+**Option 5: Pre-download on machine with internet, then transfer**
+```bash
+# On machine with internet:
+docker pull yugabyte/yugabyte:latest
+docker save yugabyte/yugabyte:latest -o yugabyte-image.tar
+
+# Transfer yugabyte-image.tar to restricted environment, then:
+docker load -i yugabyte-image.tar
+docker run -d --name yugabyte -p 5433:5433 -p 7000:7000 -p 9000:9000 yugabyte/yugabyte:latest yugabytedb --daemon=false
+```
+
 # Wait 10 seconds for startup
 sleep 10
 
