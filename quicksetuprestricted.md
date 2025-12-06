@@ -251,6 +251,8 @@ python3 -c "import requests; print('requests OK')"
 python3 -c "import psycopg2; print('psycopg2 OK')"
 ```
 
+**Note**: Wheel files are included for Python 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, and 3.14. The installer will automatically select the correct wheel for your Python version.
+
 ### Load Data
 
 **If using virtual environment:**
