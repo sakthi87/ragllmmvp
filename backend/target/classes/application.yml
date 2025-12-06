@@ -1,0 +1,68 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: rag-api-service
+  
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:rag_llm_optimized}
+    username: ${DB_USER:yugabyte}
+    password: ${DB_PASSWORD:yugabyte}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+# Phi-4 API Configuration
+phi4:
+  embed-url: ${EMBED_API_URL:http://localhost:8083/api/embed}
+  generate-url: ${GENERATE_API_URL:http://localhost:8083/api/generate}
+  rag-url: ${RAG_API_URL:http://localhost:8083/api/rag}
+  timeout: 600000  # 10 minutes for CPU-only inference
+
+# RAG Configuration
+rag:
+  default-top-k: 6
+  max-top-k: 10
+  default-time-range: 7d
+  keyspace-filter: ${RAG_KEYSPACE:transaction_keyspace}
+  table-filter: ${RAG_TABLE:dda_transactions}
+  cluster-filter: ${RAG_CLUSTER:}  # ✅ GAP 1 FIX: Multi-cluster support (empty = all clusters)
+  similarity-threshold: ${RAG_SIMILARITY_THRESHOLD:0.65}  # Default threshold (per-doc-type thresholds override this)
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.yugabyte.rag: INFO
+    org.springframework.web: INFO
+    org.hibernate: WARN
+  file:
+    name: ${LOG_FILE:logs/rag-api.log}
+    max-size: 10MB
+    max-history: 30
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [REQUEST-%X{requestId:-}] %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [REQUEST-%X{requestId:-}] %logger{36} - %msg%n"
+
