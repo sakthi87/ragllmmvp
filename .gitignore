@@ -2,11 +2,16 @@
 backend/.mvn/
 backend/mvnw
 backend/mvnw.cmd
+backend/target/*.class
+backend/target/maven-status/
+backend/target/classes/
+backend/target/*.jar.original
 # Keep: backend/target/rag-api-1.0.0.jar (needed for restricted environments)
 
 # Node (keep build and node_modules for restricted environments)
 frontend/.pnp/
 frontend/.pnp.js
+frontend/node_modules/.cache/
 # Keep: frontend/build/ and frontend/node_modules/ (needed for restricted environments)
 
 # Logs
