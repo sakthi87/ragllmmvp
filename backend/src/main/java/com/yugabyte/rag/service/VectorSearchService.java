@@ -549,7 +549,8 @@ public class VectorSearchService {
                                       List<String> docTypes, Integer maxTokens, Double temperature) {
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
         
-        // Group documents by source_type
+        // ✅ OPTIMIZATION: Pre-group documents by source_type to avoid redundant grouping
+        // Documents are already grouped by intent from vector search, but we group here for safety
         Map<String, List<RagQueryResponse.SourceDocument>> docsByType = documents.stream()
             .collect(java.util.stream.Collectors.groupingBy(
                 doc -> doc.getSourceType() != null ? doc.getSourceType() : "UNKNOWN"
@@ -582,6 +583,11 @@ public class VectorSearchService {
                     // Extract question for this intent
                     String intentQuestion = extractIntentQuestion(question, docType);
                     
+                    // ✅ OPTIMIZATION: Calculate optimal maxTokens per intent based on document count and complexity
+                    int intentMaxTokens = calculateIntentMaxTokens(intentDocs.size(), intentPrompt.length(), maxTokens);
+                    log.debug("   Intent {} maxTokens: {} (documents: {}, prompt length: {})", 
+                            docType, intentMaxTokens, intentDocs.size(), intentPrompt.length());
+                    
                     // Call LLM for this intent
                     long intentStart = System.currentTimeMillis();
                     String intentAnswer = null;
@@ -589,7 +595,7 @@ public class VectorSearchService {
                         intentAnswer = phi4Client.generateRagAnswer(
                             intentQuestion,
                             intentPrompt,
-                            maxTokens != null ? maxTokens : 256, // Increased for multi-intent
+                            intentMaxTokens, // Use calculated per-intent maxTokens
                             temperature != null ? temperature : 0.3
                         );
                         
@@ -639,12 +645,100 @@ public class VectorSearchService {
     }
     
     /**
+     * Calculate optimal maxTokens per intent based on document count and prompt complexity.
+     * ✅ OPTIMIZATION: Allocates tokens based on actual needs per intent.
+     * 
+     * @param docCount Number of documents for this intent
+     * @param promptLength Length of the prompt in characters
+     * @param baseMaxTokens Base maxTokens from request (or default)
+     * @return Calculated maxTokens for this intent
+     */
+    private int calculateIntentMaxTokens(int docCount, int promptLength, Integer baseMaxTokens) {
+        // Base calculation: 150 tokens minimum per intent
+        int base = 150;
+        
+        // Add tokens based on document count (more docs = more context = more tokens needed)
+        int docTokens = Math.min(docCount * 25, 100); // Max 100 tokens for documents
+        
+        // Add tokens based on prompt length (longer prompts may need longer answers)
+        int promptTokens = Math.min(promptLength / 10, 50); // Max 50 tokens for prompt complexity
+        
+        int calculated = base + docTokens + promptTokens;
+        
+        // If baseMaxTokens is provided, use it as a cap but ensure minimum
+        if (baseMaxTokens != null && baseMaxTokens > 0) {
+            // For multi-intent, distribute tokens but ensure each intent gets at least 150
+            int perIntentTokens = Math.max(baseMaxTokens / 3, 150); // Distribute, min 150 per intent
+            calculated = Math.min(calculated, perIntentTokens);
+        }
+        
+        // Cap at 512 tokens maximum per intent
+        return Math.min(calculated, 512);
+    }
+    
+    /**
      * Extract intent-specific question from multi-intent query.
+     * ✅ IMPROVEMENT: Attempts to extract relevant parts of the question for each intent.
      */
     private String extractIntentQuestion(String question, String docType) {
-        // For now, use the full question. In future, could extract intent-specific part.
-        // This works because the intent-specific prompt already focuses the model.
-        return question;
+        if (question == null || question.trim().isEmpty()) {
+            return question;
+        }
+        
+        // Map of keywords/phrases that indicate specific intents
+        Map<String, List<String>> intentKeywords = new HashMap<>();
+        intentKeywords.put("METADATA", Arrays.asList(
+            "schema", "primary key", "columns", "table structure", "ddl", "create table",
+            "domain", "owner", "pii", "data owner", "business", "tombstone", "compaction",
+            "storage", "ttl", "lifecycle", "retention"
+        ));
+        intentKeywords.put("LINEAGE", Arrays.asList(
+            "lineage", "populated", "kafka topic", "spark job", "pipeline", "data flow",
+            "which api", "reads from", "writes to", "source", "destination"
+        ));
+        intentKeywords.put("LOG_SUMMARY", Arrays.asList(
+            "failure", "error", "exception", "failed", "outofmemory", "log", "yesterday"
+        ));
+        intentKeywords.put("METRIC_SUMMARY", Arrays.asList(
+            "latency", "lag", "throughput", "performance", "metric", "slow", "bottleneck"
+        ));
+        
+        // Get keywords for this intent
+        List<String> keywords = intentKeywords.getOrDefault(docType, Collections.emptyList());
+        if (keywords.isEmpty()) {
+            // No specific keywords, return full question
+            return question;
+        }
+        
+        // Try to extract sentences or phrases containing intent-specific keywords
+        String lowerQuestion = question.toLowerCase();
+        StringBuilder extracted = new StringBuilder();
+        String[] sentences = question.split("[.!?]");
+        
+        for (String sentence : sentences) {
+            String lowerSentence = sentence.toLowerCase().trim();
+            // Check if sentence contains any keyword for this intent
+            for (String keyword : keywords) {
+                if (lowerSentence.contains(keyword.toLowerCase())) {
+                    if (extracted.length() > 0) {
+                        extracted.append(" ");
+                    }
+                    extracted.append(sentence.trim());
+                    break;
+                }
+            }
+        }
+        
+        // If we extracted something, use it; otherwise fall back to full question
+        String result = extracted.length() > 0 ? extracted.toString() : question;
+        
+        // Log the extraction for debugging
+        if (!result.equals(question)) {
+            log.debug("   Extracted intent-specific question for {}: '{}' (from: '{}')", 
+                    docType, result, question);
+        }
+        
+        return result;
     }
     
     /**
