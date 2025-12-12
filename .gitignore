@@ -42,6 +42,7 @@ config/config.env
 *.orig
 
 # JAR files (keep only source, not built artifacts)
+# Keep: backend/target/rag-api-1.0.0.jar (needed for restricted environments)
 # backend/target/*.jar
 
 # Python (keep wheel files for restricted environments)
