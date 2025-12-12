@@ -119,7 +119,15 @@ public class Phi4Client {
                 
                 log.debug("Generating RAG answer with context length: {}", context.length());
                 
-                RagGenerateRequest request = new RagGenerateRequest(query, context, maxTokens, temperature);
+                // ✅ Add sampling parameters: top_k=50, top_p=0.95
+                RagGenerateRequest request = new RagGenerateRequest(
+                    query, 
+                    context, 
+                    maxTokens, 
+                    temperature,
+                    50,    // topK = 50
+                    0.95   // topP = 0.95
+                );
                 
                 RagGenerateResponse response = webClient.post()
                         .uri(ragUrl)

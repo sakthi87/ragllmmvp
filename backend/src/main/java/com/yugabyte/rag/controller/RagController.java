@@ -110,13 +110,14 @@ public class RagController {
             // ✅ OPTIMIZATION: Skip prompt construction for multi-intent (uses per-intent prompts)
             boolean isMultiIntent = docTypes.size() > 1;
             String structuredPrompt = null;
+            long step8Duration = 0;  // Initialize for logging
             
             if (!isMultiIntent) {
                 long step8Start = System.currentTimeMillis();
                 log.info("🔵 [REQUEST-{}] Step 8️⃣: Prompt Construction - STARTED [{}]", 
                         requestId, LocalDateTime.now().format(formatter));
                 structuredPrompt = ragService.buildStructuredPrompt(request.getQuestion(), retrievedDocs);
-                long step8Duration = System.currentTimeMillis() - step8Start;
+                step8Duration = System.currentTimeMillis() - step8Start;
                 log.info("✅ [REQUEST-{}] Step 8️⃣: Prompt Construction - COMPLETED [{}] (Duration: {}ms)", 
                         requestId, LocalDateTime.now().format(formatter), step8Duration);
                 log.info("   Prompt length: {} characters", structuredPrompt.length());
